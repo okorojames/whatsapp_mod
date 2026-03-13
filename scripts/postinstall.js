@@ -8,8 +8,7 @@ if (!isRender) {
   process.exit(0);
 }
 
-const cacheDir =
-  process.env.PUPPETEER_CACHE_DIR || path.join(process.cwd(), ".cache", "puppeteer");
+const cacheDir = path.join(process.cwd(), ".cache", "puppeteer");
 
 process.env.PUPPETEER_CACHE_DIR = cacheDir;
 

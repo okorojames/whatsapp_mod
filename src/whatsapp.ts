@@ -4,7 +4,14 @@ import { Client, LocalAuth, Message } from "whatsapp-web.js";
 import qrcode from "qrcode-terminal";
 import { handleMessage, startStickerScanner } from "./handlers/messageHandler";
 
-process.env.PUPPETEER_CACHE_DIR ??= path.join(process.cwd(), ".cache", "puppeteer");
+const renderCacheDir = path.join(process.cwd(), ".cache", "puppeteer");
+const isRender = Boolean(process.env.RENDER || process.env.RENDER_EXTERNAL_URL);
+
+if (isRender) {
+  process.env.PUPPETEER_CACHE_DIR = renderCacheDir;
+} else {
+  process.env.PUPPETEER_CACHE_DIR ??= renderCacheDir;
+}
 
 const executablePath =
   process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath();
