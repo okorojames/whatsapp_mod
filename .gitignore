@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.env*
+.wwebjs_auth/
+.wwebjs_cache/
+
+
+# macOS metadata files
+.DS_Store
+._*
+.AppleDouble
+.LSOverride
