@@ -1,7 +1,10 @@
+import path from "node:path";
 import puppeteer from "puppeteer";
 import { Client, LocalAuth, Message } from "whatsapp-web.js";
 import qrcode from "qrcode-terminal";
 import { handleMessage, startStickerScanner } from "./handlers/messageHandler";
+
+process.env.PUPPETEER_CACHE_DIR ??= path.join(process.cwd(), ".cache", "puppeteer");
 
 const executablePath =
   process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath();
@@ -30,6 +33,7 @@ client.on("qr", (qr: string) => {
 client.on("ready", () => {
   console.log("WhatsApp bot is ready!");
   console.log(`Using browser: ${executablePath}`);
+  console.log(`Using Puppeteer cache: ${process.env.PUPPETEER_CACHE_DIR}`);
   startStickerScanner(client);
 });
 

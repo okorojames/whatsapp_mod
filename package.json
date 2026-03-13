@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "postinstall": "npx puppeteer browsers install chrome",
+    "postinstall": "node scripts/postinstall.js",
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts"
   },
