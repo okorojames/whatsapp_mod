@@ -1,7 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import QRCode from "qrcode";
-import { getLatestQr, initWhatsApp, client } from "./whatsapp";
+import { getClientStatus, getLatestQr, initWhatsApp, client } from "./whatsapp";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -10,8 +10,14 @@ app.use(express.json());
 
 // Health check endpoint
 app.get("/health", (_req: express.Request, res: express.Response) => {
-  const state = client.info ? "connected" : "disconnected";
-  res.json({ status: "ok", whatsapp: state });
+  const state = getClientStatus();
+  res.json({
+    status: "ok",
+    whatsapp: state,
+    connected: state === "ready" || state === "authenticated",
+    hasQr: Boolean(getLatestQr()),
+    clientInfoAvailable: Boolean(client.info),
+  });
 });
 
 app.get("/qr", async (_req: express.Request, res: express.Response) => {
