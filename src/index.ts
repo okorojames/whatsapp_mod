@@ -9,7 +9,7 @@ const RENDER_URL = process.env.RENDER_EXTERNAL_URL; // Set automatically by Rend
 app.use(express.json());
 
 // Health check endpoint
-app.get("/health", (_req, res) => {
+app.get("/health", (_req: express.Request, res: express.Response) => {
   const state = client.info ? "connected" : "disconnected";
   res.json({ status: "ok", whatsapp: state });
 });
