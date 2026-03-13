@@ -1,11 +1,16 @@
+import puppeteer from "puppeteer";
 import { Client, LocalAuth, Message } from "whatsapp-web.js";
 import qrcode from "qrcode-terminal";
 import { handleMessage, startStickerScanner } from "./handlers/messageHandler";
+
+const executablePath =
+  process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath();
 
 const client = new Client({
   authStrategy: new LocalAuth(),
   puppeteer: {
     headless: true,
+    executablePath,
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
@@ -24,6 +29,7 @@ client.on("qr", (qr: string) => {
 
 client.on("ready", () => {
   console.log("WhatsApp bot is ready!");
+  console.log(`Using browser: ${executablePath}`);
   startStickerScanner(client);
 });
 
