@@ -1,19 +1,24 @@
 import "dotenv/config";
-import express from "express";
-import { initWhatsApp, client } from "./whatsapp";
+import { serve } from "@hono/node-server";
+import { Hono } from "hono";
+import { logger } from "hono/logger";
+import { startBot, getSocket } from "./whatsapp";
 
-const app = express();
-const PORT = process.env.PORT || 4810;
+const app = new Hono();
+const PORT = Number(process.env.PORT) || 4810;
 
-app.use(express.json());
+app.use("*", logger());
 
-// Health check endpoint
-app.get("/health", (_req: express.Request, res: express.Response) => {
-  const state = client.info ? "connected" : "disconnected";
-  res.json({ status: "ok", whatsapp: state });
+app.get("/health", (c) => {
+  const sock = getSocket();
+  const state = sock?.user ? "connected" : "disconnected";
+  return c.json({ status: "ok", whatsapp: state });
 });
 
-app.listen(PORT, () => {
-  console.log(`Express server running on port ${PORT}`);
-  initWhatsApp();
+serve({
+  fetch: app.fetch,
+  port: PORT,
 });
+
+console.log(`Hono server running on port ${PORT}`);
+startBot();

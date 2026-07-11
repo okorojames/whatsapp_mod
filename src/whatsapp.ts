@@ -1,46 +1,67 @@
-import { Client, LocalAuth, Message } from "whatsapp-web.js";
+import {
+  makeWASocket,
+  useMultiFileAuthState,
+  DisconnectReason,
+  WASocket,
+} from "@whiskeysockets/baileys";
 import qrcode from "qrcode-terminal";
-import { handleMessage, startStickerScanner } from "./handlers/messageHandler";
+import pino from "pino";
+import { handleMessage } from "./handlers/messageHandler";
 
-const client = new Client({
-  authStrategy: new LocalAuth(),
-  puppeteer: {
-    headless: true,
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-gpu",
-      "--disable-extensions",
-      "--single-process",
-    ],
-  },
-});
+let sock: WASocket | null = null;
+let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
 
-client.on("qr", (qr: string) => {
-  console.log("Scan this QR code to log in:");
-  qrcode.generate(qr, { small: true });
-});
-
-client.on("ready", () => {
-  console.log("WhatsApp bot is ready!");
-  startStickerScanner(client);
-});
-
-client.on("authenticated", () => {
-  console.log("Authenticated successfully.");
-});
-
-client.on("auth_failure", (msg: string) => {
-  console.error("Authentication failed:", msg);
-});
-
-client.on("message_create", async (message: Message) => {
-  await handleMessage(client, message);
-});
-
-export function initWhatsApp(): void {
-  client.initialize();
+export function getSocket(): WASocket | null {
+  return sock;
 }
 
-export { client };
+export async function startBot(): Promise<void> {
+  if (reconnectTimeout) {
+    clearTimeout(reconnectTimeout);
+    reconnectTimeout = null;
+  }
+
+  const { state, saveCreds } = await useMultiFileAuthState("auth_info");
+
+  sock = makeWASocket({
+    auth: state,
+    logger: pino({ level: "warn" }),
+    browser: ["Chrome", "macOS", "22.04.4"],
+    syncFullHistory: false,
+    markOnlineOnConnect: false,
+  });
+
+  sock.ev.on("creds.update", saveCreds);
+
+  sock.ev.on("messages.upsert", async ({ messages }) => {
+    for (const msg of messages) {
+      await handleMessage(sock!, msg);
+    }
+  });
+
+  sock.ev.on("connection.update", (update) => {
+    const { connection, lastDisconnect, qr } = update;
+    if (qr) {
+      console.log("Scan this QR code with WhatsApp:");
+      qrcode.generate(qr, { small: true });
+    }
+    if (connection === "close") {
+      const err = lastDisconnect?.error as any;
+      const statusCode = err?.output?.statusCode;
+      const errorMsg = err?.message;
+      const attrs = err?.data;
+      console.log("Connection closed:", { statusCode, error: errorMsg, attrs });
+      const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
+      if (shouldReconnect) {
+        console.log("Reconnecting in 3s...");
+        reconnectTimeout = setTimeout(() => startBot(), 3000);
+      } else {
+        console.error("Logged out, manual re-auth required");
+      }
+    } else if (connection === "open") {
+      console.log("WhatsApp bot is ready!");
+    } else if (connection) {
+      console.log("Connection state:", connection);
+    }
+  });
+}

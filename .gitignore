@@ -1,8 +1,9 @@
 node_modules/
 dist/
-.env*
-.wwebjs_auth/
-.wwebjs_cache/
+.env
+.env.local
+.env.production
+auth_info/
 
 
 # macOS metadata files
