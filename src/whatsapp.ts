@@ -10,6 +10,7 @@ import { handleMessage } from "./handlers/messageHandler";
 
 let sock: WASocket | null = null;
 let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+export let latestQR: string | null = null;
 
 export function getSocket(): WASocket | null {
   return sock;
@@ -42,7 +43,8 @@ export async function startBot(): Promise<void> {
   sock.ev.on("connection.update", (update) => {
     const { connection, lastDisconnect, qr } = update;
     if (qr) {
-      console.log("Scan this QR code with WhatsApp:");
+      latestQR = qr;
+      console.log("Scan this QR code with WhatsApp (/qr endpoint)");
       qrcode.generate(qr, { small: true });
     }
     if (connection === "close") {
