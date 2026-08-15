@@ -27,7 +27,7 @@ export async function startBot(): Promise<void> {
   sock = makeWASocket({
     auth: state,
     logger: pino({ level: "warn" }),
-    browser: ["Chrome", "macOS", "22.04.4"],
+    browser: ["Mac OS", "Chrome", "14.4.1"],
     syncFullHistory: false,
     markOnlineOnConnect: false,
   });

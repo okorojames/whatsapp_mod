@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@hono/node-server": "^2.0.8",
-    "@whiskeysockets/baileys": "^7.0.0-rc13",
+    "@whiskeysockets/baileys": "^7.0.0-rc14",
     "dotenv": "^17.4.2",
     "hono": "^4.6.0",
     "pino": "^9.6.0",
